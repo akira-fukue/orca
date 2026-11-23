@@ -204,6 +204,10 @@ it('locks the lines of a send on its way, and Send then posts nothing', () => {
   })
   expect(outcome).toBe('none')
   expect(posted).toHaveLength(1)
+  // On its way, Send reads as sending; a failed send isn't.
+  expect(hook.result.current.steps!.sending).toBe(true)
+  hook.rerender({ pending: [{ ...entry, failed: true }] })
+  expect(hook.result.current.steps!.sending).toBe(false)
 })
 
 it('posts a typed answer to a single question at once', () => {

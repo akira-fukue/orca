@@ -3,7 +3,7 @@
 // on click; nothing posts until Send, which posts the picks as one comment. A line answered, or sent
 // and on its way, folds the same and stays. The comment box below is the one place to type: its
 // Enter holds the words as the answer of the line its "Replying to" names, like a pick.
-import { Check, Pencil } from 'lucide-react'
+import { Check, LoaderCircle, Pencil } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useTranslate } from '@/i18n/use-translate'
@@ -266,6 +266,8 @@ export function BotItemQuestionStep({
   // Of the lines still open: what Send posts, out of what it could.
   const count = picks.filter(Boolean).length
   const partial = count > 0 && count < lines.length
+  // Every line sent and on its way: Send stays, so focus does, and reads as sending until the read.
+  const { sending } = steps
   return (
     <>
       {shape.decisions.map((decision, index) => {
@@ -383,14 +385,22 @@ export function BotItemQuestionStep({
                 })
               : undefined
           }
+          aria-busy={sending || undefined}
           onClick={send}
         >
-          {partial
-            ? t('bots.items.ask.sendSome', 'Send {{count}}/{{total}}', {
-                count,
-                total: lines.length
-              })
-            : t('bots.items.ask.send', 'Send')}
+          {sending ? (
+            <>
+              <LoaderCircle aria-hidden className="size-3 animate-spin" />
+              {t('bots.items.ask.sending', 'Sending…')}
+            </>
+          ) : partial ? (
+            t('bots.items.ask.sendSome', 'Send {{count}}/{{total}}', {
+              count,
+              total: lines.length
+            })
+          ) : (
+            t('bots.items.ask.send', 'Send')
+          )}
         </Button>
       </div>
     </>

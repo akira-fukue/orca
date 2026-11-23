@@ -27957,6 +27957,7 @@
         "typeAnswer": "输入你的回答",
         "replaced": "智能体提出了新问题。请先阅读，再回复",
         "send": "发送",
+        "sending": "正在发送…",
         "sendSome": "发送 {{count}}/{{total}}",
         "sendSomeLabel": "发送 {{total}} 个回答中的 {{count}} 个",
         "changeAnswer": "{{question}}：{{answer}}。更改回答"

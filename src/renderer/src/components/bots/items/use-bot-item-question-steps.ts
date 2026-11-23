@@ -107,6 +107,8 @@ export type BotItemQuestionSteps = {
   bind: (index: number) => void
   /** Send: the picks post as one comment. `empty`: none picked; `none`: no line is open. */
   send: () => 'sent' | 'empty' | 'none'
+  /** No line open, and a send of them on its way (not failed): Send reads as sending until the read. */
+  sending: boolean
 }
 
 export type BotItemQuickReplyActions = {
@@ -274,7 +276,18 @@ export function useBotItemQuestionSteps(
   const answerNone = useLatestHandler(() => setBound('none'))
   // Read fresh each render, as the waiting ask is.
   const steps: BotItemQuestionSteps | null = waiting
-    ? { askId, shape, picks, lines, pick, bind, send: sendPicks }
+    ? {
+        askId,
+        shape,
+        picks,
+        lines,
+        pick,
+        bind,
+        send: sendPicks,
+        sending:
+          lines.length === 0 &&
+          pending.some(({ failed, intent }) => !failed && intent?.askId === askId)
+      }
     : null
   const quick = useLatestHandler((text: string) => {
     const intent = asked

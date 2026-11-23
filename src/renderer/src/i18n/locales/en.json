@@ -30167,6 +30167,7 @@
         "typeAnswer": "Type your answer",
         "replaced": "The agent asked a new question. Read it, then reply.",
         "send": "Send",
+        "sending": "Sending…",
         "sendSome": "Send {{count}}/{{total}}",
         "sendSomeLabel": "Send {{count}} of {{total}} answers",
         "changeAnswer": "{{question}}: {{answer}}. Change answer"

@@ -111,7 +111,8 @@ function Card({
         previous.map((held, at) => (at === index ? (held === words ? null : words) : held))
       ),
     bind: () => {},
-    send: () => (picks.some(Boolean) ? 'sent' : lines.length > 0 ? 'empty' : 'none')
+    send: () => (picks.some(Boolean) ? 'sent' : lines.length > 0 ? 'empty' : 'none'),
+    sending: false
   }
   return (
     <div className="bg-card px-3.5 py-3">
