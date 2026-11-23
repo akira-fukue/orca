@@ -83,6 +83,16 @@ export class ProviderRelayAttachment {
     return true
   }
 
+  /** Unanswered requests, in seq order; false once released. */
+  async sendPending(records: ProviderRelayRecord[]): Promise<boolean> {
+    for (const { seq, line } of records) {
+      if (!(await this.sendPieces('relayPending', seq, line))) {
+        return false
+      }
+    }
+    return true
+  }
+
   drained(): Promise<void> {
     const { socket } = this.stream
     if (this.released || !socket.writableNeedDrain || socket.destroyed) {
