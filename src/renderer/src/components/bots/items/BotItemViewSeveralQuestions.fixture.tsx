@@ -1,5 +1,5 @@
-// An agent's ask of several questions on the item page: one line at a time, answers picked or typed in
-// the comment box held until the last line or "send anyway".
+// An agent's ask of several questions on the item page: every question on one card, answers picked or
+// typed in the comment box held until Send posts them as one comment.
 import { defineFixture } from '../../../component-fixtures/component-fixture'
 import { fixtureCos } from '../../../component-fixtures/fixture-bot-panel'
 import { makeTestBotItem } from '../../../../../shared/bots/bot-item.test-fixture'
@@ -80,8 +80,7 @@ const severalView = {
   ]
 }
 
-// An ask of four questions, two picked: one line at a time, the picks held above until the last or
-// "send anyway".
+// An ask of four questions, two picked: the picked lines fold, the rest stay open, and Send reads 2/4.
 export const severalQuestions = defineFixture({
   width: 900,
   render: () => (
@@ -257,8 +256,8 @@ const readView = {
   ]
 }
 
-// One answer the host already has (sent with "send anyway", or by an older build): the answered line
-// reads "Question → answer" above, and the step is on the next open line, 1 of 3, which the box names.
+// One answer the host already has (a partial Send, or an older build): the answered line reads
+// "Question → answer", and the box names the next open line.
 export const severalQuestionsTypedAnswerRead = defineFixture({
   width: 900,
   render: () => (
