@@ -157,6 +157,25 @@ it('posts a typed answer with files at once, with the picks so far', () => {
   ])
 })
 
+it('posts a typed answer naming a file at once, holding nothing', () => {
+  const { hook, posted } = steps('file-pill')
+  const line = hook.result.current.waitingLine!
+  const pill = '@/tmp/agent-session-attachments/0123abcd-0123-4567-89ab-0123456789ab/notes.txt'
+  act(() => hook.result.current.fromBox(`see ${pill}`, [], line.id))
+  expect(posted.map(({ text }) => text)).toEqual([`${HOSTS} → see ${pill}`])
+  expect(hook.result.current.steps!.picks).toEqual([null, null])
+})
+
+it('posts a file pill on the last open line at once, the other picks along', () => {
+  const { hook, posted } = steps('file-pill-last')
+  act(() => hook.result.current.steps!.pick(1, 'Yes'))
+  const line = hook.result.current.waitingLine!
+  expect(line.line).toBe(HOSTS)
+  const pill = '@/tmp/agent-session-attachments/0123abcd-0123-4567-89ab-0123456789ab/notes.txt'
+  act(() => hook.result.current.fromBox(pill, [], line.id))
+  expect(posted.map(({ text }) => text)).toEqual([`${HOSTS} → ${pill}\n${GO} → Yes`])
+})
+
 it('posts words with no line named at once, the picks along, never answering a line', () => {
   const { hook, posted } = steps('ride-along')
   act(() => hook.result.current.steps!.pick(1, 'Yes'))

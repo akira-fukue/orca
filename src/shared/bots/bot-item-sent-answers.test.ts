@@ -93,6 +93,12 @@ describe('botItemPendingAnswersOnly', () => {
         skills: [{ name: 'review', path: '/skills/review/SKILL.md' }]
       })
     ).toBe(false)
+    const pill = '@/tmp/agent-session-attachments/0123abcd-0123-4567-89ab-0123456789ab/notes.txt'
+    expect(
+      botItemPendingAnswersOnly(
+        entry(`A? → ${pill}`, { askId: 'q', shape: several, answers: [pill, null] })
+      )
+    ).toBe(false)
     expect(botItemPendingAnswersOnly(entry('A? → Yes', intent, true))).toBe(false)
     expect(botItemPendingAnswersOnly(entry('Thanks', undefined))).toBe(false)
   })

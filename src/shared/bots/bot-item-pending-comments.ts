@@ -11,6 +11,7 @@ import {
 } from './bot-items'
 import type { BotItemQuestionShape } from './bot-item-ask'
 import { botItemAnswersText } from './bot-item-answer-lines'
+import { botItemCommentFiles } from './bot-item-comment-files'
 
 export type BotItemPendingComment = {
   /** The comment as the host will show it, the owner's; `at` is this machine's send time. */
@@ -129,19 +130,20 @@ export function botItemSentAnswers(
   return sent.size > 0 ? sent : NO_SENT
 }
 
-/** A send the ask's lines show whole: its words are exactly its answers, with no files or skills.
- *  Anything more (words riding along, an attachment, a skill) shows as its own comment too. */
+/** A send the ask's lines show whole: its words are exactly its answers, with no files (attached or
+ *  named in them) or skills. Anything more shows as its own comment too. */
 export function botItemPendingAnswersOnly(entry: BotItemPendingComment): boolean {
   const { intent, failed, paths, skills } = entry
   if (failed || !intent || paths.length > 0 || (skills?.length ?? 0) > 0) {
     return false
   }
   const text = botItemPendingCommentText(entry).trim()
-  if (intent.shape.decisions.length > 1) {
-    return text === botItemAnswersText(intent.shape, intent.answers)
-  }
-  const words = intent.answers[0]
-  return Boolean(words) && text === words?.trim()
+  const words = intent.shape.decisions.length > 1 ? null : intent.answers[0]?.trim()
+  return (
+    text !== '' &&
+    botItemCommentFiles(text).files.length === 0 &&
+    text === (words === null ? botItemAnswersText(intent.shape, intent.answers) : words)
+  )
 }
 
 /** A post's rejection when the connection dropped after the comment went out. */

@@ -34,6 +34,7 @@ import {
   type BotItemPendingComment,
   type BotItemPendingIntent
 } from '../../../../../shared/bots/bot-item-pending-comments'
+import { botItemCommentFiles } from '../../../../../shared/bots/bot-item-comment-files'
 import { useNativeChatDraft } from '../../native-chat/drafts/use-native-chat-draft'
 import {
   readNativeChatComposerDraft,
@@ -256,13 +257,18 @@ export function useBotItemQuestionSteps(
       }
       const line = shape.decisions.findIndex((_, index) => replyingTo === `${askId}:${index}`)
       if (line !== -1 && eligible(line)) {
-        if (paths.length === 0 && (skills?.length ?? 0) === 0) {
+        if (
+          paths.length === 0 &&
+          (skills?.length ?? 0) === 0 &&
+          botItemCommentFiles(text).files.length === 0
+        ) {
           // Typed words wait like a pick: the line folds to them, the box names the next open line,
           // and Send posts them with the rest.
           hold(stored(line, text.replace(/\s+/g, ' ').trim()))
           return
         }
-        // Files and skills aren't held here: they post now, with the picks so far.
+        // Files (attached, or named in the words as a file pill) and skills aren't held here: they
+        // post now, with the picks so far.
         const next = picks.map((words, at) => (at === line ? text : words))
         post(next, botItemAnswersText(shape, next), paths, skills)
       } else if (picks.some(Boolean)) {
