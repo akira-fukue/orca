@@ -25,7 +25,7 @@ export function codexConnectionOpener(
   sessionId: string,
   launch: Pick<
     CodexStructuredLaunch,
-    'visuals' | 'linkedSkillsRoot' | 'codexVersion' | 'customCommand'
+    'visuals' | 'linkedSkillsRoot' | 'codexVersion' | 'customCommand' | 'appBoundGrants'
   >,
   platform: NodeJS.Platform = process.platform
 ): CodexConnectionOpen {
@@ -34,7 +34,8 @@ export function codexConnectionOpener(
   }
   // Windows can't read a process's environment, so a shared chat's Stop could never be proven
   // there; every Windows chat keeps its own server.
-  if (platform === 'win32') {
+  // A bot's chat holds grants that end with this app, so it keeps today's launch for now.
+  if (platform === 'win32' || launch.appBoundGrants) {
     return spawnCodexAppServerConnection
   }
   // A chat's own app-server runs under the terminal daemon where it can, so it survives a restart.
