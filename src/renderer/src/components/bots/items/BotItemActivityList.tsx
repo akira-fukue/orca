@@ -293,12 +293,12 @@ export function BotItemActivityList({
                 key={entry.key}
                 bot={bot}
                 item={item}
-                // Its answers already sent answer the question, before the host's read says so: all of
-                // one question's, or every line still open of several. Other comments leave it waiting.
+                // A reply already sent answers one question, before the host's read says so. An ask of
+                // several stays live, its sent lines folded and Send in place (focus stays there, and
+                // with nothing open it posts nothing), until the read. Other comments leave it waiting.
                 entry={
                   quickReplies?.sent?.has(entry.event.id) &&
-                  (quickReplies.steps?.askId !== entry.event.id ||
-                    quickReplies.steps.lines.length === 0)
+                  quickReplies.steps?.askId !== entry.event.id
                     ? { ...entry, waiting: false }
                     : entry
                 }

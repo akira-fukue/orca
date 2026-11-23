@@ -81,12 +81,18 @@ describe('botItemPendingAnswersOnly', () => {
     ).toBe(true)
   })
 
-  it('shows words riding along, files, or a failed send as its own comment', () => {
+  it('shows words riding along, files, skills, or a failed send as its own comment', () => {
     const intent = { askId: 'q', shape: several, answers: ['Yes', null] }
     expect(botItemPendingAnswersOnly(entry('A? → Yes\nThanks', intent))).toBe(false)
     expect(botItemPendingAnswersOnly({ ...entry('A? → Yes', intent), paths: ['/tmp/a.png'] })).toBe(
       false
     )
+    expect(
+      botItemPendingAnswersOnly({
+        ...entry('A? → Yes', intent),
+        skills: [{ name: 'review', path: '/skills/review/SKILL.md' }]
+      })
+    ).toBe(false)
     expect(botItemPendingAnswersOnly(entry('A? → Yes', intent, true))).toBe(false)
     expect(botItemPendingAnswersOnly(entry('Thanks', undefined))).toBe(false)
   })

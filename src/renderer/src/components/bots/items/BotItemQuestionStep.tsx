@@ -121,9 +121,10 @@ function FoldedLine({
   const content = (
     <>
       <Check aria-hidden className="size-3 shrink-0 self-center text-status-success" />
-      {/* The question keeps at least 40%; an answer past 60% (less the check and arrow) gives way
-          too, whole in the title. */}
-      <span className="min-w-[40%] truncate">{line}</span>
+      {/* The question takes only its text's width, the arrow right after it. When the row is short it
+          gives way first, keeping at least 40%: an answer past 60% (less the check and arrow) gives
+          way too. Both stay whole in the title. */}
+      <span className="min-w-0 truncate">{line}</span>
       <span aria-hidden className="shrink-0">
         →
       </span>

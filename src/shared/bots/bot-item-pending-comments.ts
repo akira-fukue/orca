@@ -129,11 +129,11 @@ export function botItemSentAnswers(
   return sent.size > 0 ? sent : NO_SENT
 }
 
-/** A send the ask's lines show whole: its words are exactly its answers, with no files. Anything
- *  more (words riding along, an attachment) shows as its own comment too. */
+/** A send the ask's lines show whole: its words are exactly its answers, with no files or skills.
+ *  Anything more (words riding along, an attachment, a skill) shows as its own comment too. */
 export function botItemPendingAnswersOnly(entry: BotItemPendingComment): boolean {
-  const { intent, failed, paths } = entry
-  if (failed || !intent || paths.length > 0) {
+  const { intent, failed, paths, skills } = entry
+  if (failed || !intent || paths.length > 0 || (skills?.length ?? 0) > 0) {
     return false
   }
   const text = botItemPendingCommentText(entry).trim()
