@@ -112,6 +112,9 @@ function parseListing(value: unknown): AgentModelCatalogListing | null {
   const support = asRecord(row.fastModeSupport)
   const supported = support?.supported
   const supportReason = text(support?.reason)
+  const keptAt = Object.entries(asRecord(row.keptAt) ?? {}).filter(
+    (kept): kept is [string, number] => typeof kept[1] === 'number'
+  )
   return {
     models: models.filter((model): model is AgentSessionModelOption => model !== null),
     ...(typeof supported === 'boolean'
@@ -124,7 +127,8 @@ function parseListing(value: unknown): AgentModelCatalogListing | null {
       : {}),
     origin: row.origin,
     at: row.at,
-    ...(row.complete === true ? { complete: true } : {})
+    ...(row.complete === true ? { complete: true } : {}),
+    ...(keptAt.length ? { keptAt: Object.fromEntries(keptAt) } : {})
   }
 }
 

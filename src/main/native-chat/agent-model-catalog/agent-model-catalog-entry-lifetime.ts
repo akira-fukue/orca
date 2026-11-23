@@ -13,11 +13,14 @@ import {
   type AgentModelCatalogSource
 } from './agent-model-catalog-entry'
 
+export { withoutExpiredKeptRows } from './agent-model-catalog-kept-rows'
+
 export function agentModelCatalogEntryIsStale(
   entry: AgentModelCatalogEntry,
-  due: boolean
+  due: boolean,
+  now: number
 ): boolean {
-  return due || !entry.discovered
+  return due || !entry.discovered || (entry.relistAfter !== undefined && now >= entry.relistAfter)
 }
 
 export function recordAgentModelCatalogPartialAttempt(
@@ -69,14 +72,19 @@ export function evictAgentModelCatalogEntries(
 }
 
 export function retireAgentModelCatalogObservations(
-  entries: ReadonlyMap<string, AgentModelCatalogEntry>,
+  entries: Map<string, AgentModelCatalogEntry>,
   dueEntries: Set<string>,
   retiredObservations: Set<string>,
   partialAttempts: Map<string, { agent: string; at: number }>,
-  agent: string
+  agent: string,
+  forget: boolean
 ): void {
   for (const entry of entries.values()) {
-    if (entry.agent === agent) {
+    if (entry.agent === agent && forget) {
+      entries.delete(entry.fingerprint)
+      dueEntries.delete(entry.fingerprint)
+      retiredObservations.delete(entry.fingerprint)
+    } else if (entry.agent === agent) {
       dueEntries.add(entry.fingerprint)
       retiredObservations.add(entry.fingerprint)
     }

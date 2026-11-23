@@ -55,6 +55,14 @@ export class AgentModelCatalogInputs {
     }
   }
 
+  /** A user's Refresh of one catalog: a listing already running for it stands, else its next read
+   *  lists again past any failure hold. Its agent's other catalogs and chats are untouched. */
+  relistScope(fingerprint: string): void {
+    if (!this.state.refreshes.get(fingerprint)?.current()) {
+      this.expireScope(fingerprint)
+    }
+  }
+
   refreshInputs(userInitiated: boolean): void {
     for (const agent of this.state.agents()) {
       this.state.failures.expireAgent(agent)

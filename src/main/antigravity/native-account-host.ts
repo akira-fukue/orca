@@ -16,19 +16,30 @@ import { ANTIGRAVITY_USAGE_HOST_TARGET } from '../rate-limits/providers/antigrav
 
 let service: AntigravityAccountService | null = null
 const wslServices = new Map<string, AntigravityAccountService>()
-let credentialChangeListener: () => void = () => {}
+/** `otherLogin`: agy in `target` now holds a different login than the last one Orca saw there. */
+export type AntigravityNativeCredentialChange = {
+  target: RateLimitRuntimeTarget
+  otherLogin: boolean
+}
 
-export function setAntigravityNativeCredentialChangeListener(listener: () => void): void {
+let credentialChangeListener: (change: AntigravityNativeCredentialChange) => void = () => {}
+
+export function setAntigravityNativeCredentialChangeListener(
+  listener: (change: AntigravityNativeCredentialChange) => void
+): void {
   credentialChangeListener = listener
 }
 
 // The first read is a baseline: what agy held before Orca looked is unknown.
 // agy's own token refreshes keep the refresh token and must not discard the usage they produce;
 // a new refresh token is a fresh sign-in, even to the same account, and must clear a sign-in hold.
-function reportingCredentialChanges(
-  backend: AntigravityCredentialBackend
+export function reportingCredentialChanges(
+  backend: AntigravityCredentialBackend,
+  target: RateLimitRuntimeTarget
 ): AntigravityCredentialBackend {
   let lastSeen: AntigravityNativeCredential | null | undefined
+  // Survives a sign-out, so signing in to another account reads as one.
+  let lastLogin: AntigravityNativeCredential | undefined
   return {
     ...backend,
     async read() {
@@ -40,9 +51,13 @@ function reportingCredentialChanges(
           lastSeen.refreshToken !== current.refreshToken ||
           !isSameAntigravityLogin(lastSeen, current))
       ) {
-        credentialChangeListener()
+        credentialChangeListener({
+          target,
+          otherLogin: !!lastLogin && !isSameAntigravityLogin(lastLogin, current)
+        })
       }
       lastSeen = current
+      lastLogin = current ?? lastLogin
       return current
     }
   }
@@ -61,7 +76,7 @@ function createService(
   vaultPath: string,
   target: RateLimitRuntimeTarget = ANTIGRAVITY_USAGE_HOST_TARGET
 ) {
-  const reporting = reportingCredentialChanges(backend)
+  const reporting = reportingCredentialChanges(backend, target)
   return new AntigravityAccountService(
     createEncryptedAntigravityAccountStore(vaultPath, reporting.parse),
     reporting,

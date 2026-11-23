@@ -7,7 +7,8 @@ import {
   createAgentModelCatalogSuccessWriter,
   retireAgentModelCatalogObservations,
   agentModelCatalogLaunchAgents,
-  agentModelCatalogEntryIsStale
+  agentModelCatalogEntryIsStale,
+  withoutExpiredKeptRows
 } from './agent-model-catalog-entry-lifetime'
 import { independentAgentModelCatalog } from '../../../shared/agent-session/options/model-catalog/agent-model-catalog-ownership'
 export type { AgentModelCatalogProbe } from './agent-model-catalog-discovery'
@@ -125,7 +126,9 @@ export class AgentModelCatalogStore {
 
   /** A known superseded invocation cannot be certified by resolving its old base key again. */
   observation(fingerprint: string): AgentModelCatalogEntry | null {
-    return this.retiredObservations.has(fingerprint) ? null : this.get(fingerprint)
+    return this.retiredObservations.has(fingerprint)
+      ? null
+      : withoutExpiredKeptRows(this.get(fingerprint), this.now())
   }
 
   /** Whether any account's catalog of `agent` is saved here. */
@@ -134,21 +137,14 @@ export class AgentModelCatalogStore {
   }
 
   /** Live saves must not delay account-level discovery. */
-  isStale(entry: AgentModelCatalogEntry): boolean {
-    return agentModelCatalogEntryIsStale(entry, this.dueEntries.has(entry.fingerprint))
-  }
+  isStale = (entry: AgentModelCatalogEntry): boolean =>
+    agentModelCatalogEntryIsStale(entry, this.dueEntries.has(entry.fingerprint), this.now())
 
-  failureDetail(fingerprint: string): string | null {
-    return this.failures.detail(fingerprint)
-  }
+  failureDetail = (fingerprint: string): string | null => this.failures.detail(fingerprint)
 
-  hasActiveFailure(fingerprint: string): boolean {
-    return this.failures.isActive(fingerprint)
-  }
+  hasActiveFailure = (fingerprint: string): boolean => this.failures.isActive(fingerprint)
 
-  failure(fingerprint: string): AgentModelCatalogFailure | null {
-    return this.failures.get(fingerprint)
-  }
+  failure = (fingerprint: string): AgentModelCatalogFailure | null => this.failures.get(fingerprint)
 
   retirementRevision(agent: string): number {
     const revision = this.retirementRevisions.get(agent) ?? 0
@@ -191,20 +187,28 @@ export class AgentModelCatalogStore {
     this.inputs.expireScopes(agent)
   }
 
+  relistScope = (fingerprint: string): void => this.inputs.relistScope(fingerprint)
+
   expireFailure(fingerprint: string): void {
     this.failures.expire(fingerprint)
   }
 
-  expireAgent(agent: string): void {
+  /** With `forget`, its catalogs are deleted, also on disk: they belong to an account the agent no
+   *  longer holds, so a restart must not bring them back. */
+  expireAgent(agent: string, forget = false): void {
     this.retireListings(agent)
     retireAgentModelCatalogObservations(
       this.entries,
       this.dueEntries,
       this.retiredObservations,
       this.partialAttempts,
-      agent
+      agent,
+      forget
     )
     this.failures.expireAgent(agent)
+    if (forget) {
+      this.persistence?.save(() => [...this.entries.values()])
+    }
   }
 
   recordSuccess(
@@ -293,9 +297,7 @@ export class AgentModelCatalogStore {
     return this.refreshes.has(fingerprint)
   }
 
-  clearPartialAttempts(): void {
-    this.partialAttempts.clear()
-  }
+  clearPartialAttempts = (): void => this.partialAttempts.clear()
 
   verified(entry: AgentModelCatalogEntry): boolean {
     return (
