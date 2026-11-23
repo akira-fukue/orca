@@ -324,6 +324,7 @@ import {
 import {
   FileChooserAnswer,
   PagePromptAnswer,
+  ReadPrintPdf,
   Screencast,
   ScreencastAck,
   ScreencastReclaimForDesktop,
@@ -1447,6 +1448,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'browser.profileImportFromBrowser': ProfileImportFromBrowser,
   'browser.profileList': null,
   'browser.readImage': ReadImage,
+  'browser.readPrintPdf': ReadPrintPdf,
   'browser.reload': Reload,
   'browser.replaceMisspelling': PageMenuWord,
   'browser.saveImage': PageMenuImage,
